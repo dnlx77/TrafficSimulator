@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{17b228b2-fdf3-4208-b5d7-243c9e116d46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{7ad62a6f-6df8-4b2c-bc26-210a885012da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets">
+      <UniqueIdentifier>{e4e1ad06-1b87-435c-b541-d11a4e86c32f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Entities">
+      <UniqueIdentifier>{ef0641c6-ce20-474f-93a1-e3519d4470ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Entities">
+      <UniqueIdentifier>{7abe63cd-7c83-4e80-932d-792f04122683}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Entities\Car.h">
+      <Filter>include\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Simulation.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Entities\Car.cpp">
+      <Filter>src\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Simulation.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg.json" />
+  </ItemGroup>
+</Project>

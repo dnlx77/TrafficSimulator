@@ -1,0 +1,20 @@
+# Visual Studio
+.vs/
+out/
+build/
+x64/
+x86/
+Debug/
+Release/
+*.user
+*.aps
+*.opendb
+*.pdb
+*.ipch
+
+# Se scarichi SFML dentro la cartella progetto (consigliato non committare i binari se pesanti, ma le dll servono)
+# Per ora ignoriamo i file intermedi di compilazione
+
+# Vcpkg
+vcpkg_installed/
+vcpkg_overlays/

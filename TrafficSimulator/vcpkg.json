@@ -1,0 +1,11 @@
+{
+  "name": "traffic-simulator",
+  "version-string": "0.1.0",
+  "builtin-baseline": "e5a1490e1409d175932ef6014519e9ae149ddb7c",
+  "dependencies": [
+    {
+      "name": "sfml",
+      "version>=": "3.0.0"
+    }
+  ]
+}
