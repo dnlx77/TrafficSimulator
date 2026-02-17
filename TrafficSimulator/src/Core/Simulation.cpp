@@ -1,13 +1,20 @@
-#include "../include/Simulation.h"
+#include "../../include/Core/Simulation.h"
 
 Simulation::Simulation()
-    : m_window(sf::VideoMode({ 800, 600 }), "Traffic Simulator C++")
+    : m_window(sf::VideoMode({ 800, 600 }), "Traffic Simulator")
 {
     m_window.setFramerateLimit(60);
 
-    // Aggiungiamo un paio di auto per testare
-    m_cars.emplace_back(50.0f, 300.0f, sf::Color::Red);
-    m_cars.emplace_back(50.0f, 350.0f, sf::Color::Blue);
+    // 1. Carichiamo risorse
+    const sf::Texture &carTex = m_resourceManager.getTexture("assets/textures/car_top.png");
+
+    // 2. Creiamo una strada (Da (50,300) a (750, 300), larga 80 pixel)
+    // Nota: L'ordine è importante! Creiamo le strade PRIMA delle auto se vogliamo spawnare le auto sopra
+    m_roads.emplace_back(sf::Vector2f(0.f, 300.f), sf::Vector2f(800.f, 300.f), 80.f, 2);
+
+    // 3. Creiamo le auto (sopra la strada)
+    m_cars.emplace_back(50.f, 280.f, carTex); // Corsia sopra
+    m_cars.emplace_back(150.f, 320.f, carTex); // Corsia sotto
 }
 
 void Simulation::run() {
@@ -50,8 +57,14 @@ void Simulation::update(sf::Time deltaTime) {
 }
 
 void Simulation::render() {
-    m_window.clear(sf::Color(50, 50, 50)); // Colore asfalto scuro
+    m_window.clear(sf::Color(30, 100, 30)); // Sfondo verde (erba) per vedere meglio la strada
 
+    // Disegniamo PRIMA le strade (così le auto ci passano sopra)
+    for (auto &road : m_roads) {
+        road.draw(m_window);
+    }
+
+    // Poi le auto
     for (auto &car : m_cars) {
         car.draw(m_window);
     }

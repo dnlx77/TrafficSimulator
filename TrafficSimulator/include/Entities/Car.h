@@ -4,7 +4,7 @@
 class Car {
 public:
     // Costruttore: posizione iniziale e colore
-    Car(float startX, float startY, sf::Color color);
+    Car(float startX, float startY, const sf::Texture &texture);
 
     // Aggiorna la logica (movimento)
     void update(float deltaTime);
@@ -13,7 +13,7 @@ public:
     void draw(sf::RenderWindow &window);
 
 private:
-    sf::RectangleShape m_shape;
+    sf::Sprite m_sprite;
     sf::Vector2f m_velocity;
     float m_speed;
 };

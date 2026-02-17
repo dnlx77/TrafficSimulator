@@ -1,4 +1,4 @@
-#include "../include/Simulation.h"
+#include "../include/Core/Simulation.h"
 
 int main() {
     Simulation sim;

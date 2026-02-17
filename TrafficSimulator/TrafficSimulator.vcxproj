@@ -143,12 +143,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\Entities\Car.h" />
-    <ClInclude Include="include\Simulation.h" />
+    <ClInclude Include="include\Core\ResourceManager.h" />
+    <ClInclude Include="include\Core\Simulation.h" />
+    <ClInclude Include="include\World\Road.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Entities\Car.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Simulation.cpp" />
+    <ClCompile Include="src\Core\ResourceManager.cpp" />
+    <ClCompile Include="src\Core\Simulation.cpp" />
+    <ClCompile Include="src\World\Road.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />

@@ -16,24 +16,48 @@
     <Filter Include="src\Entities">
       <UniqueIdentifier>{7abe63cd-7c83-4e80-932d-792f04122683}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Core">
+      <UniqueIdentifier>{d3c12708-c675-4fec-8ca7-217902be1d01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\World">
+      <UniqueIdentifier>{1195121b-007b-49f8-9025-2d94c404f062}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core">
+      <UniqueIdentifier>{ed0e6e26-9f1f-475c-9c31-374156721a40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\World">
+      <UniqueIdentifier>{a35984fb-00b2-40ed-ada6-0c64092ff2e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Entities\Car.h">
       <Filter>include\Entities</Filter>
     </ClInclude>
-    <ClInclude Include="include\Simulation.h">
-      <Filter>include</Filter>
+    <ClInclude Include="include\Core\ResourceManager.h">
+      <Filter>include\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\Simulation.h">
+      <Filter>include\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\World\Road.h">
+      <Filter>include\World</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Entities\Car.cpp">
       <Filter>src\Entities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Simulation.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\ResourceManager.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Simulation.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\World\Road.cpp">
+      <Filter>src\World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
