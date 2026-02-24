@@ -146,6 +146,7 @@
     <ClInclude Include="include\Core\ResourceManager.h" />
     <ClInclude Include="include\Core\Simulation.h" />
     <ClInclude Include="include\World\Road.h" />
+    <ClInclude Include="include\World\TrafficLight.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Entities\Car.cpp" />
@@ -153,9 +154,13 @@
     <ClCompile Include="src\Core\ResourceManager.cpp" />
     <ClCompile Include="src\Core\Simulation.cpp" />
     <ClCompile Include="src\World\Road.cpp" />
+    <ClCompile Include="src\World\TrafficLight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\textures\car_top.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

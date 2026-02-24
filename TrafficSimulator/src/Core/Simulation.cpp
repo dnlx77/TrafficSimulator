@@ -5,16 +5,19 @@ Simulation::Simulation()
 {
     m_window.setFramerateLimit(60);
 
-    // 1. Carichiamo risorse
     const sf::Texture &carTex = m_resourceManager.getTexture("assets/textures/car_top.png");
 
-    // 2. Creiamo una strada (Da (50,300) a (750, 300), larga 80 pixel)
-    // Nota: L'ordine è importante! Creiamo le strade PRIMA delle auto se vogliamo spawnare le auto sopra
-    m_roads.emplace_back(sf::Vector2f(0.f, 300.f), sf::Vector2f(800.f, 300.f), 80.f, 2);
+    m_roads.emplace_back(sf::Vector2f(0.f, 300.f), sf::Vector2f(800.f, 300.f), 100.f, 2);
 
-    // 3. Creiamo le auto (sopra la strada)
-    m_cars.emplace_back(50.f, 280.f, carTex); // Corsia sopra
-    m_cars.emplace_back(150.f, 320.f, carTex); // Corsia sotto
+    // Mettiamo il semaforo a metà strada (a 400 pixel dall'inizio)
+    // Posizione su schermo: (400, 240) per metterlo a lato della corsia
+    m_trafficLights.emplace_back(sf::Vector2f(400.f, 240.f), 400.f);
+
+    // Auto varie e veloci
+    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 0.f);
+    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 80.f);
+    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 160.f);
+    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 240.f);
 }
 
 void Simulation::run() {
@@ -50,9 +53,60 @@ void Simulation::processEvents() {
 }
 
 void Simulation::update(sf::Time deltaTime) {
-    float dtSeconds = deltaTime.asSeconds();
-    for (auto &car : m_cars) {
-        car.update(dtSeconds);
+    float dt = deltaTime.asSeconds();
+
+    // 1. Aggiorna semafori
+    for (auto &light : m_trafficLights) {
+        light.update(dt);
+    }
+
+    // 2. Ordina le auto
+    std::sort(m_cars.begin(), m_cars.end(), [](const Car &a, const Car &b) {
+        return a.getTraveledDistance() > b.getTraveledDistance();
+        });
+
+    // Per ora abbiamo una sola strada lunga 800px
+    float roadLength = 800.f;
+
+    // 3. Logica dell'Ostacolo
+    for (size_t i = 0; i < m_cars.size(); ++i) {
+        bool hasLeader = false;
+        float leaderSpeed = 0.f;
+        float distanceToLeader = 10000.f;
+        float myPos = m_cars[i].getTraveledDistance();
+
+        // --- Controlla Auto Davanti ---
+        Car *leaderCar = nullptr;
+        if (i == 0) {
+            if (m_cars.size() > 1) leaderCar = &m_cars.back();
+        }
+        else {
+            leaderCar = &m_cars[i - 1];
+        }
+
+        if (leaderCar) {
+            float carPos = leaderCar->getTraveledDistance();
+            float dist = (carPos > myPos) ? (carPos - myPos) : ((carPos + roadLength) - myPos);
+            distanceToLeader = dist;
+            leaderSpeed = leaderCar->getSpeed();
+            hasLeader = true;
+        }
+
+        // --- Controlla Semaforo ---
+        if (!m_trafficLights.empty() && m_trafficLights[0].getState() == World::TrafficLight::State::Red) {
+            float lightPos = m_trafficLights[0].getRoadPosition();
+            float distToLight = (lightPos > myPos) ? (lightPos - myPos) : ((lightPos + roadLength) - myPos);
+
+            // Se il semaforo è davanti a me, ED È PIÙ VICINO dell'auto che ho davanti,
+            // allora il semaforo diventa il mio bersaglio principale!
+            if (!hasLeader || distToLight < distanceToLeader) {
+                distanceToLeader = distToLight;
+                leaderSpeed = 0.f; // Il semaforo è fermo!
+                hasLeader = true;
+            }
+        }
+
+        m_cars[i].update(dt, hasLeader, leaderSpeed, distanceToLeader);
     }
 }
 
@@ -62,6 +116,10 @@ void Simulation::render() {
     // Disegniamo PRIMA le strade (così le auto ci passano sopra)
     for (auto &road : m_roads) {
         road.draw(m_window);
+    }
+
+    for (auto &light : m_trafficLights) {
+        light.draw(m_window);
     }
 
     // Poi le auto

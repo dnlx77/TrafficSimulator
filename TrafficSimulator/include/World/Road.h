@@ -10,6 +10,7 @@ namespace World { // Opzionale: usare namespace aiuta a evitare conflitti
         void draw(sf::RenderWindow &window);
 
         // Getters utili per dopo
+        sf::Vector2f getDirection() const;
         sf::Vector2f getStart() const { return m_start; }
         sf::Vector2f getEnd() const { return m_end; }
 

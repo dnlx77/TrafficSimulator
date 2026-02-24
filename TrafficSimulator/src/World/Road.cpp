@@ -44,4 +44,13 @@ namespace World {
         window.draw(m_markings);
     }
 
+    sf::Vector2f Road::getDirection() const
+    {
+        sf::Vector2f dir = m_end - m_start;
+        // Teorema di Pitagora per la lunghezza
+        float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        // Restituisce il vettore normalizzato (lunghezza 1)
+        return dir / length;
+    }
+
 }

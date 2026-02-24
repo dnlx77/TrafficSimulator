@@ -28,6 +28,12 @@
     <Filter Include="src\World">
       <UniqueIdentifier>{a35984fb-00b2-40ed-ada6-0c64092ff2e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assets\textures">
+      <UniqueIdentifier>{ccc4b8f0-e0fa-4f2f-9623-5136ad0233b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\fonts">
+      <UniqueIdentifier>{c0daf3a0-cecf-409f-ba63-c0fae5336a35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Entities\Car.h">
@@ -40,6 +46,9 @@
       <Filter>include\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\World\Road.h">
+      <Filter>include\World</Filter>
+    </ClInclude>
+    <ClInclude Include="include\World\TrafficLight.h">
       <Filter>include\World</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,8 +68,16 @@
     <ClCompile Include="src\World\Road.cpp">
       <Filter>src\World</Filter>
     </ClCompile>
+    <ClCompile Include="src\World\TrafficLight.cpp">
+      <Filter>src\World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\textures\car_top.png">
+      <Filter>assets\textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>
