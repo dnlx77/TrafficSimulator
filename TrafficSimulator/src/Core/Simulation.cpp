@@ -1,23 +1,88 @@
 #include "../../include/Core/Simulation.h"
+#include <cmath>
+#include <algorithm>
 
+// --- FUNZIONE MATEMATICA PER ARROTONDARE GLI ANGOLI ---
+// Trasforma un percorso a spigoli in un percorso curvo fluido
+std::vector<sf::Vector2f> createRoundedPath(const std::vector<sf::Vector2f> &points, float radius, int segments) {
+    std::vector<sf::Vector2f> smoothPath;
+
+    // Cicliamo su ogni punto (ignorando l'ultimo perché è uguale al primo)
+    for (size_t i = 0; i < points.size() - 1; ++i) {
+        // Troviamo il punto precedente, attuale e successivo
+        sf::Vector2f p_prev = (i == 0) ? points[points.size() - 2] : points[i - 1];
+        sf::Vector2f p_curr = points[i];
+        sf::Vector2f p_next = points[i + 1];
+
+        // Direzione dal punto attuale al precedente
+        sf::Vector2f dirPrev = p_prev - p_curr;
+        float lenPrev = std::sqrt(dirPrev.x * dirPrev.x + dirPrev.y * dirPrev.y);
+        dirPrev /= lenPrev;
+
+        // Direzione dal punto attuale al successivo
+        sf::Vector2f dirNext = p_next - p_curr;
+        float lenNext = std::sqrt(dirNext.x * dirNext.x + dirNext.y * dirNext.y);
+        dirNext /= lenNext;
+
+        // Limita il raggio se il segmento è troppo corto
+        float actualRadius = std::min({ radius, lenPrev / 2.f, lenNext / 2.f });
+
+        // Punti di controllo della curva di Bézier
+        sf::Vector2f curveStart = p_curr + dirPrev * actualRadius;
+        sf::Vector2f curveEnd = p_curr + dirNext * actualRadius;
+
+        // Genera i punti intermedi della curva
+        for (int j = 0; j <= segments; ++j) {
+            float t = static_cast<float>(j) / segments;
+            float u = 1.0f - t;
+            // Formula della Curva di Bézier Quadratica
+            sf::Vector2f pt = (u * u) * curveStart + (2.0f * u * t) * p_curr + (t * t) * curveEnd;
+            smoothPath.push_back(pt);
+        }
+    }
+
+    // Chiudiamo il cerchio
+    if (!smoothPath.empty()) smoothPath.push_back(smoothPath.front());
+    return smoothPath;
+}
+
+// --- COSTRUTTORE SIMULATION ---
 Simulation::Simulation()
     : m_window(sf::VideoMode({ 800, 600 }), "Traffic Simulator")
 {
     m_window.setFramerateLimit(60);
-
     const sf::Texture &carTex = m_resourceManager.getTexture("assets/textures/car_top.png");
 
-    m_roads.emplace_back(sf::Vector2f(0.f, 300.f), sf::Vector2f(800.f, 300.f), 100.f, 2);
+    // 1. Definiamo i 4 spigoli del rettangolo
+    std::vector<sf::Vector2f> sharpPath = {
+        {100.f, 100.f}, {700.f, 100.f},
+        {700.f, 500.f}, {100.f, 500.f},
+        {100.f, 100.f}
+    };
 
-    // Mettiamo il semaforo a metà strada (a 400 pixel dall'inizio)
-    // Posizione su schermo: (400, 240) per metterlo a lato della corsia
-    m_trafficLights.emplace_back(sf::Vector2f(400.f, 240.f), 400.f);
+    // 2. MAGIA: Arrotondiamo il percorso (Raggio curva: 80 pixel, 15 punti per curva)
+    std::vector<sf::Vector2f> trackPath = createRoundedPath(sharpPath, 80.f, 15);
 
-    // Auto varie e veloci
-    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 0.f);
-    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 80.f);
-    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 160.f);
-    m_cars.emplace_back(m_roads[0].getStart(), m_roads[0].getEnd(), carTex, 240.f);
+    // 3. Calcoliamo la lunghezza dinamica del nuovo percorso smussato
+    m_trackLength = 0.f;
+    for (size_t i = 0; i < trackPath.size() - 1; ++i) {
+        sf::Vector2f diff = trackPath[i + 1] - trackPath[i];
+        m_trackLength += std::sqrt(diff.x * diff.x + diff.y * diff.y);
+
+        // Disegniamo la strada per ogni piccolo segmento!
+        m_roads.emplace_back(trackPath[i], trackPath[i + 1], 80.f, 2);
+    }
+
+    // 4. Posizioniamo il semaforo a inizio curva
+    m_trafficLights.emplace_back(sf::Vector2f(400.f, 60.f), 300.f);
+
+    // 5. Generiamo le auto passandogli il percorso smussato
+    m_cars.emplace_back(trackPath, carTex, 0.f);
+    m_cars.emplace_back(trackPath, carTex, 100.f);
+    m_cars.emplace_back(trackPath, carTex, 200.f);
+    m_cars.emplace_back(trackPath, carTex, 300.f);
+
+    m_cars[0].setDesiredSpeed(60.f);
 }
 
 void Simulation::run() {
@@ -65,9 +130,7 @@ void Simulation::update(sf::Time deltaTime) {
         return a.getTraveledDistance() > b.getTraveledDistance();
         });
 
-    // Per ora abbiamo una sola strada lunga 800px
-    float roadLength = 800.f;
-
+    
     // 3. Logica dell'Ostacolo
     for (size_t i = 0; i < m_cars.size(); ++i) {
         bool hasLeader = false;
@@ -86,7 +149,7 @@ void Simulation::update(sf::Time deltaTime) {
 
         if (leaderCar) {
             float carPos = leaderCar->getTraveledDistance();
-            float dist = (carPos > myPos) ? (carPos - myPos) : ((carPos + roadLength) - myPos);
+            float dist = (carPos >= myPos) ? (carPos - myPos) : ((carPos + m_trackLength) - myPos);
             distanceToLeader = dist;
             leaderSpeed = leaderCar->getSpeed();
             hasLeader = true;
@@ -95,14 +158,16 @@ void Simulation::update(sf::Time deltaTime) {
         // --- Controlla Semaforo ---
         if (!m_trafficLights.empty() && m_trafficLights[0].getState() == World::TrafficLight::State::Red) {
             float lightPos = m_trafficLights[0].getRoadPosition();
-            float distToLight = (lightPos > myPos) ? (lightPos - myPos) : ((lightPos + roadLength) - myPos);
+            float distToLight = (lightPos >= myPos) ? (lightPos - myPos) : ((lightPos + m_trackLength) - myPos);
 
-            // Se il semaforo è davanti a me, ED È PIÙ VICINO dell'auto che ho davanti,
-            // allora il semaforo diventa il mio bersaglio principale!
-            if (!hasLeader || distToLight < distanceToLeader) {
-                distanceToLeader = distToLight;
-                leaderSpeed = 0.f; // Il semaforo è fermo!
-                hasLeader = true;
+            // --- CORREZIONE 2: Limite Visivo ---
+            // Le auto reagiscono al semaforo SOLO se si trova a meno di 300 pixel di distanza
+            if (distToLight < 300.f) {
+                if (!hasLeader || distToLight < distanceToLeader) {
+                    distanceToLeader = distToLight;
+                    leaderSpeed = 0.f; // Il semaforo è fermo!
+                    hasLeader = true;
+                }
             }
         }
 

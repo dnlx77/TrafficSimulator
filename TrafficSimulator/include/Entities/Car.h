@@ -1,10 +1,11 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
 #include <optional> // Serve per gestire "nessuna auto davanti"
 
 class Car {
 public:
-    Car(sf::Vector2f start, sf::Vector2f end, const sf::Texture &texture, float intialOffset= 0.f);
+    Car(const std::vector<sf::Vector2f> &path, const sf::Texture &texture, float intialOffset= 0.f);
 
     // Ora l'update accetta un puntatore opzionale all'auto davanti
     // Se è nullptr, significa che la strada è libera
@@ -25,9 +26,9 @@ private:
     float m_currentSpeed;        // Modulo della velocità (scalare)
 
     // Posizione sulla strada
-    sf::Vector2f m_startPoint;
-    sf::Vector2f m_endPoint;
-    float m_totalDistance;
+    std::vector<sf::Vector2f> m_path;           // Tutti i punti della strada
+    std::vector<float> m_cumulativeDistances;   // Distanza raggiunta ad ogni punto
+    float m_totalDistance;                      // Lunghezza totale del percorso
     float m_traveledDistance;
 
     // --- Parametri IDM (Fisica) ---

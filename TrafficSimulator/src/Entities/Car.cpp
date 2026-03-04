@@ -1,25 +1,21 @@
 #include "../../include/Entities/Car.h"
 
-Car::Car(sf::Vector2f start, sf::Vector2f end, const sf::Texture &texture, float initialOffset)
+Car::Car(const std::vector<sf::Vector2f>& path, const sf::Texture &texture, float initialOffset)
     : m_sprite(texture),
-    m_startPoint(start),
-    m_endPoint(end),
+    m_path(path),
     m_traveledDistance(initialOffset), // <-- Inizializziamo con l'offset!
-    m_currentSpeed(0.f) // Partiamo fermi
+    m_currentSpeed(0.f), // Partiamo fermi
+    m_totalDistance(0.f)
 {
-    // 1. Calcolo Vettore Direzione e Distanza Totale
-    sf::Vector2f diff = end - start;
-    m_totalDistance = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+    // 1. Calcoliamo le distanze cumulative per ogni segmento del percorso
+    m_cumulativeDistances.push_back(0.f); // Il primo punto è a distanza 0
 
-    // 2. Normalizzazione (Direzione Unitaria)
-    sf::Vector2f direction(0.f, 0.f);
-    if (m_totalDistance > 0.f) {
-        direction = diff / m_totalDistance;
+    for (size_t i = 1; i < m_path.size(); ++i) {
+        sf::Vector2f diff = m_path[i] - m_path[i - 1];
+        float segmentLength = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+        m_totalDistance += segmentLength;
+        m_cumulativeDistances.push_back(m_totalDistance);
     }
-
-    // 3. Salviamo la direzione in m_velocity
-    // (In update la moltiplicheremo per m_currentSpeed)
-    m_velocity = direction;
 
     // --- 4. Configurazione Sprite ---
     auto bounds = m_sprite.getLocalBounds();
@@ -27,19 +23,9 @@ Car::Car(sf::Vector2f start, sf::Vector2f end, const sf::Texture &texture, float
     float scale = 60.f / bounds.size.x; // Target 60px
     m_sprite.setScale({ scale, scale });
 
-    // CALCOLO POSIZIONE INIZIALE BASATA SULL'OFFSET
-    if (m_totalDistance > 0.f) {
-        sf::Vector2f startPos = m_startPoint + (direction * m_traveledDistance);
-        m_sprite.setPosition(startPos);
-    }
-    else {
-        m_sprite.setPosition(m_startPoint);
-    }
-
-    // --- 5. Rotazione ---
-    float angleRadians = std::atan2(direction.y, direction.x);
-    float angleDegrees = angleRadians * 180.f / 3.14159265f;
-    m_sprite.setRotation(sf::degrees(angleDegrees));
+    // Inizializziamo l'auto forzando un aggiornamento a deltaTime = 0
+    // Questo la posiziona e la ruota correttamente prima del primo frame
+    update(0.f, false, 0.f, 10000.f);
 }
 
 void Car::update(float deltaTime, bool hasLeader, float leaderSpeed, float distanceToLeader) {
@@ -67,22 +53,53 @@ void Car::update(float deltaTime, bool hasLeader, float leaderSpeed, float dista
     m_currentSpeed += acceleration * deltaTime;
     if (m_currentSpeed < 0.f) m_currentSpeed = 0.f;
 
-    float step = m_currentSpeed * deltaTime;
-    m_traveledDistance += step;
+    // --- NUOVA LOGICA DI POSIZIONAMENTO (PATHFINDING) ---
+    m_traveledDistance += m_currentSpeed * deltaTime;
 
-    // Aggiorniamo la velocità vettoriale
-    sf::Vector2f dir = (m_endPoint - m_startPoint) / m_totalDistance;
-    m_velocity = dir * m_currentSpeed;
+    // Loop del percorso
+    float localDistance = m_traveledDistance;
+    while (localDistance >= m_totalDistance && m_totalDistance > 0) {
+        localDistance -= m_totalDistance;
+    }
+    // Sincronizziamo la variabile globale per non farla crescere all'infinito
+    m_traveledDistance = localDistance;
 
-    // Loop del mondo
-    if (m_traveledDistance >= m_totalDistance) {
-        m_traveledDistance -= m_totalDistance;
+    // 1. Troviamo su quale segmento del percorso ci troviamo
+    size_t currentSegment = 0;
+    for (size_t i = 0; i < m_cumulativeDistances.size() - 1; ++i) {
+        if (localDistance >= m_cumulativeDistances[i] && localDistance < m_cumulativeDistances[i + 1]) {
+            currentSegment = i;
+            break;
+        }
     }
 
-    // Posizione sullo schermo
-    float t = m_traveledDistance / m_totalDistance;
-    sf::Vector2f newPos = m_startPoint + (m_endPoint - m_startPoint) * t;
+    // Se per qualche errore numerico non lo troviamo, usiamo l'ultimo segmento
+    if (currentSegment >= m_path.size() - 1) currentSegment = m_path.size() - 2;
+
+    // 2. Calcoliamo posizione e rotazione interpolando sul segmento attuale
+    sf::Vector2f startP = m_path[currentSegment];
+    sf::Vector2f endP = m_path[currentSegment + 1];
+
+    float startDist = m_cumulativeDistances[currentSegment];
+    float endDist = m_cumulativeDistances[currentSegment + 1];
+    float segmentLength = endDist - startDist;
+
+    // Percentuale di completamento del segmento attuale (0.0 -> 1.0)
+    float t = (localDistance - startDist) / segmentLength;
+
+    // Posizione 2D
+    sf::Vector2f newPos = startP + (endP - startP) * t;
     m_sprite.setPosition(newPos);
+
+    // Vettore Direzione e Rotazione
+    sf::Vector2f diff = endP - startP;
+    if (segmentLength > 0.f) {
+        sf::Vector2f dir = diff / segmentLength;
+        m_velocity = dir * m_currentSpeed; // Aggiorniamo la velocità vettoriale
+
+        float angleRadians = std::atan2(dir.y, dir.x);
+        m_sprite.setRotation(sf::degrees(angleRadians * 180.f / 3.14159265f));
+    }
 }
 
 void Car::draw(sf::RenderWindow &window) {

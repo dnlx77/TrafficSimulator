@@ -22,4 +22,6 @@ private:
     std::vector<World::Road> m_roads; // Lista delle strade
     std::vector<World::TrafficLight> m_trafficLights; // Lista dei semafori
     std::vector<Car> m_cars; // Vettore per gestire n auto
+
+    float m_trackLength;
 };
