@@ -51,6 +51,9 @@
     <ClInclude Include="include\World\TrafficLight.h">
       <Filter>include\World</Filter>
     </ClInclude>
+    <ClInclude Include="include\World\Node.h">
+      <Filter>include\World</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Entities\Car.cpp">
@@ -69,6 +72,9 @@
       <Filter>src\World</Filter>
     </ClCompile>
     <ClCompile Include="src\World\TrafficLight.cpp">
+      <Filter>src\World</Filter>
+    </ClCompile>
+    <ClCompile Include="src\World\Node.cpp">
       <Filter>src\World</Filter>
     </ClCompile>
   </ItemGroup>

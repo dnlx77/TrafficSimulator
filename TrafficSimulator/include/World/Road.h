@@ -1,27 +1,32 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
 
-namespace World { // Opzionale: usare namespace aiuta a evitare conflitti
+namespace World {
+    class Node; // Forward declaration
 
     class Road {
     public:
-        Road(sf::Vector2f start, sf::Vector2f end, float width, int lanes);
+        // Ora la strada collega due Nodi e ha una sua geometria (path)
+        Road(Node *startNode, Node *endNode, const std::vector<sf::Vector2f> &path, float width);
 
         void draw(sf::RenderWindow &window);
 
-        // Getters utili per dopo
-        sf::Vector2f getDirection() const;
-        sf::Vector2f getStart() const { return m_start; }
-        sf::Vector2f getEnd() const { return m_end; }
+        // Getters fondamentali per l'Intelligenza Artificiale
+        Node *getStartNode() const { return m_startNode; }
+        Node *getEndNode() const { return m_endNode; }
+        float getLength() const { return m_length; }
+        const std::vector<sf::Vector2f> &getWaypoints() const { return m_waypoints; }
 
     private:
-        sf::Vector2f m_start;
-        sf::Vector2f m_end;
+        Node *m_startNode;
+        Node *m_endNode;
         float m_width;
-        int m_lanes; // Numero di corsie (per disegnare le strisce)
+        float m_length;
 
-        sf::ConvexShape m_shape;       // L'asfalto
-        sf::VertexArray m_markings;    // Le strisce bianche
+        std::vector<sf::Vector2f> m_waypoints;
+
+        // Geometria per il rendering visivo
+        std::vector<sf::ConvexShape> m_segments;
     };
-
 }
